@@ -1,0 +1,87 @@
+import static java.util.Objects.requireNonNull
+
+group 'net.scriptgate'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.1'
+    compile group: 'org.jsoup', name: 'jsoup', version: '1.8.3'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.13'
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.13'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.6.4'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.4'
+    compile group: 'net.sourceforge.jexcelapi', name: 'jxl', version: '2.6.12'
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile group: 'org.assertj', name: 'assertj-core', version: '3.3.0'
+    testCompile group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
+}
+
+jar {
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    manifest {
+        attributes 'Main-Class': 'net.scriptgate.fiantje.Fiantje'
+    }
+}
+
+sourceSets {
+    test {
+        java {
+            srcDir 'src/test/java/http'
+            srcDir 'src/test/java/io'
+            srcDir 'src/test/java/unit'
+        }
+    }
+}
+
+task TranslateJsonToExcel(type: JavaExec, dependsOn: 'classes') {
+    group = 'fiantje'
+    main = 'net.scriptgate.fiantje.command.TranslateJsonToExcelCommand'
+    classpath = sourceSets.main.runtimeClasspath
+
+    doFirst {
+        requireNonNull(inputFilename, "property 'inputFilename' is required")
+        systemProperty 'fiantje.input', inputFilename
+        if (hasProperty('output')) systemProperty 'fiantje.output', output
+    }
+}
+
+
+task ExtractOrdersToJson(type: JavaExec, dependsOn: 'classes') {
+    group = 'fiantje'
+    main = 'net.scriptgate.fiantje.command.ExtractOrdersToJsonCommand'
+    classpath = sourceSets.main.runtimeClasspath
+
+    doFirst {
+        requireNonNull(username, "property 'username' is required")
+        requireNonNull(password, "property 'password' is required")
+        systemProperty 'fiantje.username', username
+        systemProperty 'fiantje.password', password
+        if (hasProperty('output')) systemProperty 'fiantje.output', output
+    }
+}
+
+task ExtractOrdersToExcel(type: JavaExec, dependsOn: 'classes') {
+    group = 'fiantje'
+    main = 'net.scriptgate.fiantje.command.ExtractOrdersToExcelCommand'
+    classpath = sourceSets.main.runtimeClasspath
+
+    doFirst {
+        requireNonNull(username, "property 'username' is required")
+        requireNonNull(password, "property 'password' is required")
+        systemProperty 'fiantje.username', username
+        systemProperty 'fiantje.password', password
+        if (hasProperty('output')) systemProperty 'fiantje.output', output
+    }
+}
+
